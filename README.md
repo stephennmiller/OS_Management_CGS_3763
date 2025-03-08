@@ -38,7 +38,7 @@ Run the compile executable:
 - Select options 1 - 3 from the menus to explore features, or 0 to exit.
 - For file management, run in a directory with files to see their attributes,
 
-```markdown
+
 ## Sample Memory Management Output
 With blocks `{15, 10, 20, 35, 80}` and processes `{10, 20, 5, 30, 65}`:
 
