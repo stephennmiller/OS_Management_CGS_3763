@@ -38,24 +38,27 @@ Run the compile executable:
 - Select options 1 - 3 from the menus to explore features, or 0 to exit.
 - For file management, run in a directory with files to see their attributes,
 
+```markdown
 ## Sample Memory Management Output
-With blocks {15, 10, 20, 35, 80} and processes {10, 20, 5, 30, 65}:
+With blocks `{15, 10, 20, 35, 80}` and processes `{10, 20, 5, 30, 65}`:
 
-**************** First Fit ****************
-Process No. Process Size Block No. Remaining Space
-1           10          1         5
-2           20          3         0
-3           5           1         0
-4           30          4         5
-5           65          5         15
+### First Fit
+| Process No. | Process Size | Block No. | Remaining Space |
+|-------------|--------------|-----------|-----------------|
+| 1           | 10           | 1         | 5               |
+| 2           | 20           | 3         | 0               |
+| 3           | 5            | 1         | 0               |
+| 4           | 30           | 4         | 5               |
+| 5           | 65           | 5         | 15              |
+
 
 ## Directory Structure
-- OSManagement.c: Main source code
-- .gitignore: Ignores compiled files
-- README.md: This documentation
+- `OSManagement.c`: Main source code
+- `.gitignore`: Ignores compiled files
+- `README.md`: This documentation
 
 ## Author
-- Stephen Miller
+- **Stephen Miller**
 - PID: 4078565
 - Original: November 2021
 - Enhanced: February 26, 2025
@@ -63,7 +66,7 @@ Process No. Process Size Block No. Remaining Space
 ## License
 This project is for educational purposes and not licensed for commercial use.
 
-## Acknowledgements
-- Enhanced with assitance from Grok (xAI) in 2025
-- Originally submitted for CGS 3763 Assignments 5 & 6
+## Acknowledgments
+- Enhanced with assistance from Grok (xAI) in 2025.
+- Originally submitted for CGS 3763 Assignment 5 & 6.
 
