@@ -69,7 +69,6 @@ With blocks `{15, 10, 20, 35, 80}` and processes `{10, 20, 5, 30, 65}` (Remainin
 
 ## Author
 - **Stephen Miller**
-- PID: 4078565
 - Original: November 2021
 - Enhanced: February 26, 2025
 

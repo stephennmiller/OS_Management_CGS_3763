@@ -1,8 +1,7 @@
 // OSManagement
 // Created by Stephen Miller on 11/1/21 (Assignment 5).
-// CGS 3763, PID 4078565
+// CGS 3763
 // Assignment 6 completed 11/19/21
-// Enhanced version with improvements - Feb 26, 2025
 
 #include <stdio.h>      // Standard input/output
 #include <stdlib.h>     // Standard library (exit)
