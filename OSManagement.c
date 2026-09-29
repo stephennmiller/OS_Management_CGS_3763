@@ -5,8 +5,7 @@
 // Enhanced version with improvements - Feb 26, 2025
 
 #include <stdio.h>      // Standard input/output
-#include <stdlib.h>     // Standard library (e.g., exit)
-#include <string.h>     // String operations
+#include <stdlib.h>     // Standard library (exit)
 #include <time.h>       // Time-related functions
 #include <dirent.h>     // Directory operations
 #include <sys/stat.h>   // File status operations
@@ -29,7 +28,6 @@
 typedef struct {
     int originalSize;   // Original size of the memory block
     int remainingSize;  // Remaining available space
-    int occupied;       // Flag indicating if block is fully occupied
 } MemoryBlock;
 
 // Function prototypes
@@ -38,8 +36,9 @@ void clearScreen(void);                 // Clears the terminal screen
 void memoryManagement(void);            // Manages memory allocation simulations
 void fileAttributes(const char *path);  // Displays file attributes from a directory
 void *threadFunction(void *arg);        // Thread function for multithreading demo
-void displayProcess(int allocation[], int processes, int processSize[], MemoryBlock blocks[], int blocksNum); // Displays allocation results
+void displayProcess(int allocation[], int remainingAfter[], int processes, int processSize[], MemoryBlock blocks[]); // Displays allocation results
 void initMemoryBlocks(MemoryBlock blocks[], int blockSize[], int blocksNum); // Initializes memory blocks
+void initAllocation(int allocation[], int processes); // Marks all processes as not allocated
 void firstFit(MemoryBlock blocks[], int blocksNum, int processSize[], int processes); // First Fit algorithm
 void worstFit(MemoryBlock blocks[], int blocksNum, int processSize[], int processes); // Worst Fit algorithm
 void bestFit(MemoryBlock blocks[], int blocksNum, int processSize[], int processes); // Best Fit algorithm
@@ -60,10 +59,12 @@ int main(void) {
             case THREAD: {
                 pthread_t thread1, thread2; // Declare thread IDs
                 printf("\nCreating two sample threads...\n");
-                pthread_create(&thread1, NULL, threadFunction, "Thread 1"); // Create first thread
-                pthread_create(&thread2, NULL, threadFunction, "Thread 2"); // Create second thread
-                pthread_join(thread1, NULL); // Wait for first thread to finish
-                pthread_join(thread2, NULL); // Wait for second thread to finish
+                int created1 = pthread_create(&thread1, NULL, threadFunction, "Thread 1") == 0; // Create first thread
+                int created2 = pthread_create(&thread2, NULL, threadFunction, "Thread 2") == 0; // Create second thread
+                if (!created1) printf("Could not create Thread 1\n");
+                if (!created2) printf("Could not create Thread 2\n");
+                if (created1) pthread_join(thread1, NULL); // Wait for first thread to finish
+                if (created2) pthread_join(thread2, NULL); // Wait for second thread to finish
                 clearScreen(); // Clear screen after threads complete
                 break;
             }
@@ -81,6 +82,7 @@ int main(void) {
 int displayMenu(void) {
     int choice = INVALID; // Initialize choice to invalid
     char buffer[100];     // Buffer for input
+    int consumed;         // Characters parsed by sscanf, incl. trailing whitespace
     
     while (choice == INVALID) {
         printf("\nOS Management Simulator\n");
@@ -90,11 +92,14 @@ int displayMenu(void) {
         printf("0. Exit\n");
         printf("Enter selection: ");
         
-        if (fgets(buffer, sizeof(buffer), stdin) != NULL) {
-            if (sscanf(buffer, "%d", &choice) != 1 || choice < 0 || choice > 3) {
-                printf("Please enter a number between 0 and 3\n");
-                choice = INVALID; // Reset to invalid on bad input
-            }
+        if (fgets(buffer, sizeof(buffer), stdin) == NULL) {
+            printf("\n");
+            return EXIT; // End of input: exit instead of re-prompting forever
+        }
+        if (sscanf(buffer, " %d %n", &choice, &consumed) != 1 || buffer[consumed] != '\0'
+                || choice < 0 || choice > 3) {
+            printf("Please enter a number between 0 and 3\n");
+            choice = INVALID; // Reset to invalid on bad input
         }
     }
     return choice; // Return valid selection
@@ -104,11 +109,11 @@ void clearScreen(void) {
     printf("\nPress Enter to continue...");
     int c;
     while ((c = getchar()) != '\n' && c != EOF); // Clear input buffer
-    system("clear"); // Clear terminal (Mac/Linux)
+    printf("\033[H\033[2J"); // Clear terminal with ANSI codes (no shell or TERM needed)
+    fflush(stdout);
 }
 
 void memoryManagement(void) {
-    clearScreen(); // Clear screen before starting
     printf("\n************ Memory Management ************\n");
 
     int blockSize[] = {15, 10, 20, 35, 80}; // Array of memory block sizes
@@ -135,37 +140,46 @@ void memoryManagement(void) {
                 break;
         }
     }
+    clearScreen(); // Pause so results can be read, then clear
 }
 
 void initMemoryBlocks(MemoryBlock blocks[], int blockSize[], int blocksNum) {
     for (int i = 0; i < blocksNum; i++) {
         blocks[i].originalSize = blockSize[i];  // Set original size
         blocks[i].remainingSize = blockSize[i]; // Set remaining size
-        blocks[i].occupied = 0;                 // Mark as not occupied
+    }
+}
+
+void initAllocation(int allocation[], int processes) {
+    for (int p = 0; p < processes; p++) {
+        allocation[p] = INVALID; // Not allocated yet
     }
 }
 
 void firstFit(MemoryBlock blocks[], int blocksNum, int processSize[], int processes) {
     printf("\n**************** First Fit ****************\n");
-    int allocation[processes]; // Array to store block allocations
-    memset(allocation, INVALID, sizeof(allocation)); // Initialize with -1
+    int allocation[processes];     // Array to store block allocations
+    int remainingAfter[processes]; // Block space left right after each allocation
+    initAllocation(allocation, processes);
 
     for (int p = 0; p < processes; p++) {
         for (int b = 0; b < blocksNum; b++) {
             if (blocks[b].remainingSize >= processSize[p]) {
                 allocation[p] = b;                  // Assign block
                 blocks[b].remainingSize -= processSize[p]; // Update remaining space
+                remainingAfter[p] = blocks[b].remainingSize;
                 break; // Move to next process
             }
         }
     }
-    displayProcess(allocation, processes, processSize, blocks, blocksNum); // Display results
+    displayProcess(allocation, remainingAfter, processes, processSize, blocks); // Display results
 }
 
 void bestFit(MemoryBlock blocks[], int blocksNum, int processSize[], int processes) {
     printf("\n**************** Best Fit ****************\n");
     int allocation[processes];
-    memset(allocation, INVALID, sizeof(allocation));
+    int remainingAfter[processes];
+    initAllocation(allocation, processes);
 
     for (int p = 0; p < processes; p++) {
         int bestIdx = INVALID;
@@ -179,15 +193,17 @@ void bestFit(MemoryBlock blocks[], int blocksNum, int processSize[], int process
         if (bestIdx != INVALID) {
             allocation[p] = bestIdx;
             blocks[bestIdx].remainingSize -= processSize[p];
+            remainingAfter[p] = blocks[bestIdx].remainingSize;
         }
     }
-    displayProcess(allocation, processes, processSize, blocks, blocksNum);
+    displayProcess(allocation, remainingAfter, processes, processSize, blocks);
 }
 
 void worstFit(MemoryBlock blocks[], int blocksNum, int processSize[], int processes) {
     printf("\n**************** Worst Fit ****************\n");
     int allocation[processes];
-    memset(allocation, INVALID, sizeof(allocation));
+    int remainingAfter[processes];
+    initAllocation(allocation, processes);
 
     for (int p = 0; p < processes; p++) {
         int worstIdx = INVALID;
@@ -201,16 +217,18 @@ void worstFit(MemoryBlock blocks[], int blocksNum, int processSize[], int proces
         if (worstIdx != INVALID) {
             allocation[p] = worstIdx;
             blocks[worstIdx].remainingSize -= processSize[p];
+            remainingAfter[p] = blocks[worstIdx].remainingSize;
         }
     }
-    displayProcess(allocation, processes, processSize, blocks, blocksNum);
+    displayProcess(allocation, remainingAfter, processes, processSize, blocks);
 }
 
 void nextFit(MemoryBlock blocks[], int blocksNum, int processSize[], int processes) {
     printf("\n**************** Next Fit ****************\n");
     int allocation[processes];
+    int remainingAfter[processes];
     int lastIdx = 0; // Start index for next fit
-    memset(allocation, INVALID, sizeof(allocation));
+    initAllocation(allocation, processes);
 
     for (int p = 0; p < processes; p++) {
         int b = lastIdx;
@@ -219,6 +237,7 @@ void nextFit(MemoryBlock blocks[], int blocksNum, int processSize[], int process
             if (blocks[b].remainingSize >= processSize[p]) {
                 allocation[p] = b;
                 blocks[b].remainingSize -= processSize[p];
+                remainingAfter[p] = blocks[b].remainingSize;
                 lastIdx = (b + 1) % blocksNum; // Update last index
                 break;
             }
@@ -226,36 +245,38 @@ void nextFit(MemoryBlock blocks[], int blocksNum, int processSize[], int process
             checked++;
         }
     }
-    displayProcess(allocation, processes, processSize, blocks, blocksNum);
+    displayProcess(allocation, remainingAfter, processes, processSize, blocks);
 }
 
-void displayProcess(int allocation[], int processes, int processSize[], MemoryBlock blocks[], int blocksNum) {
-    printf("\nProcess No.\tProcess Size\tBlock No.\tRemaining Space\n");
+void displayProcess(int allocation[], int remainingAfter[], int processes, int processSize[], MemoryBlock blocks[]) {
+    printf("\nProcess No.\tProcess Size\tBlock No.\tBlock Size\tRemaining Space\n");
     for (int i = 0; i < processes; i++) {
         printf("%d\t\t%d\t\t", i + 1, processSize[i]);
         if (allocation[i] == INVALID) {
-            printf("Not Allocated\t-\n");
+            printf("Not Allocated\t-\t\t-\n");
         } else {
-            printf("%d\t\t%d\n", allocation[i] + 1, blocks[allocation[i]].remainingSize);
+            printf("%d\t\t%d\t\t%d\n", allocation[i] + 1, blocks[allocation[i]].originalSize, remainingAfter[i]);
         }
     }
 }
 
 void fileAttributes(const char *path) {
-    clearScreen(); // Clear screen before display
     struct stat statBuff;
     struct dirent *de;
     DIR *dr = opendir(path); // Open directory
-    char input[10];
+    char input[10] = {0}; // Stays empty (show all) if input ends at the prompt
     int showAll = 1;
 
     if (dr == NULL) {
         printf("Could not open directory: %s\n", path);
+        clearScreen(); // Pause so the error can be read
         return;
     }
 
     printf("Show all file details? (y/n): ");
-    fgets(input, sizeof(input), stdin);
+    if (fgets(input, sizeof(input), stdin) == NULL) {
+        printf("\n");
+    }
     if (input[0] == 'n' || input[0] == 'N') {
         showAll = 0; // Toggle detail level
     }
@@ -270,6 +291,7 @@ void fileAttributes(const char *path) {
         printAttributes(de->d_name, statBuff, showAll); // Print attributes
     }
     closedir(dr); // Close directory
+    clearScreen(); // Pause so results can be read, then clear
 }
 
 void printAttributes(char name[], struct stat statBuff, int showAll) {
@@ -280,8 +302,13 @@ void printAttributes(char name[], struct stat statBuff, int showAll) {
     if (showAll) {
         printf("Size: %lld bytes\n", (long long)statBuff.st_size);
         t = statBuff.st_mtime;
-        strftime(timestr, sizeof(timestr), "%Y-%m-%d %H:%M:%S", localtime(&t));
-        printf("Last Modified: %s\n", timestr);
+        struct tm *tm = localtime(&t);
+        if (tm != NULL) {
+            strftime(timestr, sizeof(timestr), "%Y-%m-%d %H:%M:%S", tm);
+            printf("Last Modified: %s\n", timestr);
+        } else {
+            printf("Last Modified: unknown\n");
+        }
         printf("Permissions: %o\n", statBuff.st_mode & 0777);
     }
 }

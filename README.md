@@ -29,31 +29,41 @@ This is a C-based Operating System simulator developed as a student project for 
 
 ## Compilation
 To compile the program, use:
+```bash
 gcc -o os_management OSManagement.c -pthread
+```
+
+To build with warnings and sanitizers and run the scripted checks:
+```bash
+scripts/check.sh
+```
 
 ## Usage
-Run the compile executable:
+Run the compiled executable:
+```bash
 ./os_management
+```
 
 - Select options 1 - 3 from the menus to explore features, or 0 to exit.
-- For file management, run in a directory with files to see their attributes,
+- For file management, run in a directory with files to see their attributes.
 
 
 ## Sample Memory Management Output
-With blocks `{15, 10, 20, 35, 80}` and processes `{10, 20, 5, 30, 65}`:
+With blocks `{15, 10, 20, 35, 80}` and processes `{10, 20, 5, 30, 65}` (Remaining Space is the block's free space right after that process is placed):
 
 ### First Fit
-| Process No. | Process Size | Block No. | Remaining Space |
-|-------------|--------------|-----------|-----------------|
-| 1           | 10           | 1         | 5               |
-| 2           | 20           | 3         | 0               |
-| 3           | 5            | 1         | 0               |
-| 4           | 30           | 4         | 5               |
-| 5           | 65           | 5         | 15              |
+| Process No. | Process Size | Block No. | Block Size | Remaining Space |
+|-------------|--------------|-----------|------------|-----------------|
+| 1           | 10           | 1         | 15         | 5               |
+| 2           | 20           | 3         | 20         | 0               |
+| 3           | 5            | 1         | 15         | 0               |
+| 4           | 30           | 4         | 35         | 5               |
+| 5           | 65           | 5         | 80         | 15              |
 
 
 ## Directory Structure
 - `OSManagement.c`: Main source code
+- `scripts/check.sh`: Build and behavior checks
 - `.gitignore`: Ignores compiled files
 - `README.md`: This documentation
 
