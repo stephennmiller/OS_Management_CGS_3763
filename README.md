@@ -6,7 +6,6 @@ This is a C-based Operating System simulator developed as a student project for 
 ### Project Timeline:
 - **Initial Version:** November 1, 2021 (Assignment 5)
 - **Assignment 6 Completion:** November 19, 2021
-- **Enhanced Version:** February 26, 2025
 
 ## Features
 - **Memory Management**
@@ -19,7 +18,7 @@ This is a C-based Operating System simulator developed as a student project for 
   - Displays file attributes and metadata from the current directory.
 - **Multithreading Demonstration**
   - Implements basic thread execution using POSIX threads (`pthreads`).
-- **Enhanced Usability**
+- **Usability**
   - Improved input validation and screen-clearing mechanics.
 
 ## Requirements
@@ -69,9 +68,7 @@ With blocks `{15, 10, 20, 35, 80}` and processes `{10, 20, 5, 30, 65}` (Remainin
 
 ## Author
 - **Stephen Miller**
-- PID: 4078565
 - Original: November 2021
-- Enhanced: February 26, 2025
 
 ## License
 This project is for educational purposes and not licensed for commercial use.
